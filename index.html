@@ -751,6 +751,7 @@ function buildUI(){
           <div class="fg">
             <div class="fgrp"><label>Search by Company</label><input type="text" id="compSearch" placeholder="e.g. GSK, Abbott..." oninput="doCompanySearch(this.value)"/></div>
             <div class="fgrp"><label>Search by Formula</label><input type="text" id="formulaSearch" placeholder="e.g. Paracetamol..." oninput="doFormulaSearch(this.value)"/></div>
+            <div class="fgrp"><label>Search by Medicine Name</label><input type="text" id="nameSearch" placeholder="e.g. Panadol, Augmentin..." oninput="doNameSearch(this.value)"/></div>
           </div>
         </div>
         <div id="companyResults" style="display:none;margin-bottom:16px">
@@ -761,6 +762,21 @@ function buildUI(){
           <div class="shdr"><h3 id="formulaTitle">Formula Results</h3></div>
           <div class="tw"><table><thead><tr><th>Photo</th><th>Medicine</th><th>Company</th><th>Stock</th><th>Retail</th><th>Wholesale</th><th>Expiry</th><th>Status</th></tr></thead><tbody id="formulaTb"></tbody></table></div>
         </div>
+        <div id="nameResults" style="display:none">
+          <div class="shdr">
+            <h3 id="nameResultsTitle">Name Results</h3>
+          </div>
+          <div class="tw"><table>
+            <thead>
+              <tr>
+                <th>Photo</th><th>Medicine</th><th>Company</th>
+                <th>Formula</th><th>Stock</th><th>Retail</th>
+                <th>Wholesale</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="nameTb"></tbody>
+            </table></div>
+          </div>
       </div>
 
       <!-- SALE -->
@@ -1185,6 +1201,39 @@ window.doFormulaSearch=function(val){
     return`<tr><td>${img}</td><td><div class="mn">${x.name}</div><div class="ms">${x.type}</div></td><td style="font-size:11px;font-family:var(--font2)">${x.company}</td><td style="font-family:var(--mono);font-weight:700;font-size:12px">${x.qty}</td><td style="font-family:var(--mono);color:var(--green2);font-size:11px">Rs.${x.sale}</td><td style="font-family:var(--mono);color:var(--yellow2);font-size:11px">Rs.${x.wholesale||'—'}</td><td style="font-family:var(--mono);font-size:10px">${x.expiry}</td><td><span class="st ${s.cls}">${s.label}</span></td></tr>`;
   }).join('');
 }
+window.doNameSearch = function(val) {
+  const div = document.getElementById('nameResults');
+  if(!div) return;
+  if(!val) { div.style.display='none'; return; }
+  const m = meds.filter(x => 
+    x.name.toLowerCase().includes(val.toLowerCase())
+  );
+  div.style.display = 'block';
+  document.getElementById('nameResultsTitle').textContent = 
+    `Medicine "${val}" — ${m.length} results found`;
+  const tb = document.getElementById('nameTb');
+  if(!m.length) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No medicines found</td></tr>';
+    return;
+  }
+  tb.innerHTML = m.map(x => {
+    const s = getSt(x.expiry);
+    const img = x.photo 
+      ? `<img src="${x.photo}" style="width:32px;height:32px;border-radius:7px;object-fit:cover"/>` 
+      : `<div style="width:32px;height:32px;border-radius:7px;background:var(--s1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px">💊</div>`;
+    return `<tr>
+      <td>${img}</td>
+      <td><div class="mn">${x.name}</div><div class="ms">${x.type}</div></td>
+      <td style="font-size:11px">${x.company}</td>
+      <td style="font-size:10px;color:var(--text3)">${x.formula||'—'}</td>
+      <td style="font-family:var(--mono);font-weight:700">${x.qty}</td>
+      <td style="font-family:var(--mono);color:var(--green2)">Rs.${x.sale}</td>
+      <td style="font-family:var(--mono);color:var(--yellow2)">Rs.${x.wholesale||'—'}</td>
+      <td><span class="st ${s.cls}">${s.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+  
 
 // EDIT
 window.openEdit=function(docId){
